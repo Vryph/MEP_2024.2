@@ -1,7 +1,3 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEditor;
 using UnityEngine;
 
 public class PlayerMovement : MonoBehaviour
@@ -9,6 +5,7 @@ public class PlayerMovement : MonoBehaviour
 
     Rigidbody2D rb;
     Camera mainCamera;
+    CameraManager cameraManager;
 
     //Collision
     [Header("Ground Collision Check parameters")]
@@ -41,12 +38,13 @@ public class PlayerMovement : MonoBehaviour
     void Awake()
     {
         rb = GetComponent<Rigidbody2D>();
+        cameraManager = GetComponent<CameraManager>();
         mainCamera = Camera.main;
     }
 
     void Update()
     {
-        CameraFollow();
+        cameraManager.CameraFollow();
         debugVelocity = rb.velocity.x;
         //Gets the player's inputs
         horizontalMoveInput = Input.GetAxis("Horizontal");
@@ -151,5 +149,15 @@ public class PlayerMovement : MonoBehaviour
     {
         Gizmos.color = isGrounded ? Color.green : Color.red;
         Gizmos.DrawWireCube(transform.position + Vector3.down* floorCheckDistance, floorCheckSize);
+    }
+
+    public float GetHorizontalInput()
+    {
+        return horizontalMoveInput;
+    }
+
+    public bool GetGrounded()
+    {
+        return isGrounded;
     }
 }
