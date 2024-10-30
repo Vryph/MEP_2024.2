@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class ProjectedPoint : MonoBehaviour
 {
-    [SerializeField] private Transform _legPoint;
+    [SerializeField] public Transform _legPoint;
 
     [SerializeField] private AnimationCurve _heightCurve;
 
@@ -10,9 +10,17 @@ public class ProjectedPoint : MonoBehaviour
     private Vector3 _startPoint, _targetPoint;
 
     [SerializeField, Range(0.01f, 1f)] private float _duration = 0.2f;
-    private bool _shouldMove = false;
+    [SerializeField, Range(0.05f, 1f)] private float _moveThreshold = 0.3f;
+    public bool ShouldMove { get; private set; }
+    public bool IsMoving { get; private set; }
+    public bool CanMove { get; set; }
     private float _distance;
 
+
+    private void Start()
+    {
+        _legPoint.transform.position = transform.position;
+    }
 
     void Update()
     {
@@ -28,42 +36,39 @@ public class ProjectedPoint : MonoBehaviour
             _distance = Vector3.Distance(hit.point, _legPoint.position);
             
 
-        if(_distance > 0.3)
+        if(_distance > _moveThreshold)
             {
-                _shouldMove = true;
+                ShouldMove = true;
             }
         }
 
-        if(_shouldMove ) { MoveLeg(hit); }
-
+        if(ShouldMove && CanMove) { MoveLeg(hit); }
     }
 
     private void MoveLeg(RaycastHit hit)
     {
-
-        if (_shouldMove)
+        if(_elapsedTime <= 0.02f)
         {
-            if(_elapsedTime == 0)
-            {
-                _startPoint = _legPoint.position;
-            }
+            _startPoint = _legPoint.position;
+        }
 
-            _targetPoint = hit.point;
+        _targetPoint = hit.point;
 
-            _elapsedTime += Time.deltaTime;
-            _normalizedTime = _elapsedTime / _duration;
-            float heightOffset = _heightCurve.Evaluate(_normalizedTime);
+        _elapsedTime += Time.deltaTime;
+        _normalizedTime = _elapsedTime / _duration;
+        float heightOffset = _heightCurve.Evaluate(_normalizedTime);
 
-            Vector3 nextPosition = Vector3.Lerp(_startPoint, _targetPoint, _normalizedTime);
-            nextPosition.y += heightOffset;
+        Vector3 nextPosition = Vector3.Lerp(_startPoint, _targetPoint, _normalizedTime);
+        IsMoving = true;
+        nextPosition.y += heightOffset;
 
-            _legPoint.position = nextPosition;
+        _legPoint.position = nextPosition;
 
-            if (_elapsedTime >= _duration)
-            {
-                _elapsedTime = 0;
-                _shouldMove = false;
-            }
+        if (_elapsedTime >= _duration)
+        {
+            _elapsedTime = 0;
+            ShouldMove = false;
+            IsMoving = false;
         }
     }
 }
